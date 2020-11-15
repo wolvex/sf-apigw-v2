@@ -69,7 +69,7 @@ func (s *Subscriber) FraudLocked() string {
 	return string(s.Data.GetStringBytes("fraudLocked"))
 }
 
-func (s *Subscriber) AccontNumber() string {
+func (s *Subscriber) AccountNumber() string {
 	return string(s.Data.GetStringBytes("acctNbr"))
 }
 

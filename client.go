@@ -92,17 +92,24 @@ func (ws *Client) Get(uri, version string, request map[string]string) (response 
 		err = fmt.Errorf("Unable to resolve uri")
 		return
 	}
-	path := ws.BaseURL + uri
+
+	var base *url.URL
+	if base, err = url.Parse(ws.BaseURL + uri); err != nil {
+		return
+	}
+
+	// Query params
+	params := url.Values{}
+	for k, v := range request {
+		params.Add(k, v)
+	}
+	base.RawQuery = params.Encode()
 
 	//initialize GET request
-	req, err := http.NewRequest("GET", path, nil)
+	req, err := http.NewRequest("GET", base.String(), nil)
 	if err != nil {
 		return
 	}
-	for k, v := range request {
-		req.URL.Query().Add(k, v)
-	}
-	req.URL.RawQuery = req.URL.Query().Encode()
 
 	response, err = ws.SubmitRequest(req, version)
 
