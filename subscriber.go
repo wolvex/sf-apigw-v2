@@ -27,7 +27,7 @@ type Subscriber struct {
 	MDN  string
 }
 
-func (s *Subscriber) Initialize(api *Client, mdn string) (err error) {
+func (s *Subscriber) Query(api *Client, mdn string) (err error) {
 	s.MDN = mdn
 
 	req := map[string]string{
