@@ -1,4 +1,4 @@
-package apigw
+package main
 
 import (
 	"time"
