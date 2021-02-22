@@ -89,6 +89,14 @@ func (s *Subscriber) NextStateDate() time.Time {
 	return ToTime(string(s.Data.GetStringBytes("nextStateDate")))
 }
 
+func (s *Subscriber) DueDate() time.Time {
+	return ToTime(string(s.Data.GetStringBytes("dueDate")))
+}
+
+func (s *Subscriber) LastPaymentDate() time.Time {
+	return ToTime(string(s.Data.GetStringBytes("lastPaymentDate")))
+}
+
 func (s *Subscriber) SettlementMethod() string {
 	return string(s.Data.GetStringBytes("settlementMethod"))
 }
@@ -169,11 +177,32 @@ func (s *Subscriber) CustomerGrade() string {
 	return string(s.Data.GetStringBytes("customerGrade"))
 }
 
-func (s *Subscriber) TotalCreditLimit() float64 {
+func (s *Subscriber) TotalCreditLimit() int {
 	if !s.Data.Exists("totalCreditLimit") {
 		return 0
 	}
-	return s.Data.GetFloat64("totalCreditLimit")
+	return s.Data.GetInt("totalCreditLimit") / 100
+}
+
+func (s *Subscriber) Balance() int {
+	if !s.Data.Exists("balance") {
+		return 0
+	}
+	return s.Data.GetInt("balance") / 100
+}
+
+func (s *Subscriber) RemainingCreditLimit() int {
+	if !s.Data.Exists("remainingCreditLimit") {
+		return 0
+	}
+	return s.Data.GetInt("remainingCreditLimit") / 100
+}
+
+func (s *Subscriber) CurrentUsage() int {
+	if !s.Data.Exists("currentUsage") {
+		return 0
+	}
+	return s.Data.GetInt("currentUsage") / 100
 }
 
 func (s *Subscriber) Balances() []*SubscriberBalance {
