@@ -1,6 +1,8 @@
 package apigw
 
 import (
+	"encoding/json"
+	"fmt"
 	"time"
 
 	"github.com/valyala/fastjson"
@@ -23,24 +25,62 @@ type SubscriberService struct {
 }
 
 type Subscriber struct {
+	Gw   *Client
 	Data *fastjson.Value
 	MDN  string
 }
 
-func (s *Subscriber) Query(api *Client, mdn string) (err error) {
-	s.MDN = mdn
+func NewSubscriber(api *Client, mdn string) (s *Subscriber, err error) {
+	s = &Subscriber{
+		Gw:  api,
+		MDN: NormalizeMDN(mdn),
+	}
 
+	err = s.Query()
+
+	return
+}
+
+func (s *Subscriber) Query() (err error) {
 	req := map[string]string{
-		"mdn": NormalizeMDN(mdn),
+		"mdn": s.MDN,
 	}
 
 	var res []byte
-	if res, err = api.Get("/crm/subscriber/query", "v1.0", req); err != nil {
+	if res, err = s.Gw.Get("/crm/subscriber/query", "v1.0", req); err != nil {
 		return
 	}
 
 	var parser fastjson.Parser
 	s.Data, err = parser.ParseBytes(res)
+
+	return
+}
+
+func (s *Subscriber) AddService(serviceCode string) (err error) {
+	data := map[string]string{
+		"mdn":         s.MDN,
+		"serviceCode": serviceCode,
+	}
+
+	var req []byte
+	if req, err = json.Marshal(data); err != nil {
+		return
+	}
+
+	var res []byte
+	if res, err = s.Gw.Post("/crm/service/buy", "v1.0", req); err != nil {
+		return
+	}
+
+	var response AddServiceMessage
+	if err = json.Unmarshal(res, &response); err != nil {
+		return
+	}
+
+	if response.TransactionID == "" || response.TransactionID == "map[-nil:true]" {
+		err = fmt.Errorf("Failure adding service: %#v", response)
+	}
 
 	return
 }
@@ -186,7 +226,12 @@ func (s *Subscriber) TotalCreditLimit() int {
 
 func (s *Subscriber) Balance() int {
 	if !s.Data.Exists("balance") {
-		return 0
+		for _, balance := range s.Balances() {
+			if balance.AcctResID == 1 {
+				s.Data.Set("balance", fastjson.MustParse(fmt.Sprintf("%d", balance.Balance)))
+			}
+		}
+
 	}
 	return s.Data.GetInt("balance") / 100
 }

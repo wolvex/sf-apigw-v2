@@ -5,6 +5,16 @@ import (
 	"time"
 )
 
+type AddServiceMessage struct {
+	MDN           string `json:"mdn,omitempty"`
+	ServiceCode   string `json:"serviceCode,omitempty"`
+	EffectiveDate string `json:"effDate,omitempty"`
+	ExpiryDate    string `json:"expDate,omitempty"`
+	TransactionID string `json:"transactionId,omitempty"`
+	ReturnCode    string `json:"returnCode,omitempty"`
+	ResultMsg     string `json:"resultMsg,omitempty"`
+}
+
 func NormalizeMDN(mdn string) string {
 	if strings.HasPrefix(mdn, "6288") {
 		return mdn
