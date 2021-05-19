@@ -229,11 +229,26 @@ func (s *Subscriber) Balance() int {
 		for _, balance := range s.Balances() {
 			if balance.AcctResID == 1 {
 				s.Data.Set("balance", fastjson.MustParse(fmt.Sprintf("%d", balance.Balance)))
+				break
 			}
 		}
 
 	}
 	return s.Data.GetInt("balance") / 100
+}
+
+func (s *Subscriber) BonusBalance() int {
+	if !s.Data.Exists("bonusPulsa") {
+		total := 0
+		for _, balance := range s.Balances() {
+			switch balance.AcctResID {
+			case 48, 69, 110:
+				total += balance.Balance
+			}
+		}
+		s.Data.Set("bonusPulsa", fastjson.MustParse(fmt.Sprintf("%d", total)))
+	}
+	return s.Data.GetInt("bonusPulsa") / 100
 }
 
 func (s *Subscriber) RemainingCreditLimit() int {
