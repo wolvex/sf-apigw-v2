@@ -57,7 +57,7 @@ func (s *Subscriber) Query() (err error) {
 	return
 }
 
-func (s *Subscriber) AddService(serviceCode string) (err error) {
+func (s *Subscriber) AddService(serviceCode string) (result AddServiceMessage, err error) {
 	data := map[string]string{
 		"mdn":         s.MDN,
 		"serviceCode": serviceCode,
@@ -73,13 +73,12 @@ func (s *Subscriber) AddService(serviceCode string) (err error) {
 		return
 	}
 
-	var response AddServiceMessage
-	if err = json.Unmarshal(res, &response); err != nil {
+	if err = json.Unmarshal(res, &result); err != nil {
 		return
 	}
 
-	if response.TransactionID == "" || response.TransactionID == "map[-nil:true]" {
-		err = fmt.Errorf("Failure adding service: %#v", response)
+	if result.TransactionID == "" || result.TransactionID == "map[-nil:true]" {
+		err = fmt.Errorf("Failure adding service: %#v", result)
 	}
 
 	return

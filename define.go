@@ -8,8 +8,9 @@ import (
 type AddServiceMessage struct {
 	MDN           string `json:"mdn,omitempty"`
 	ServiceCode   string `json:"serviceCode,omitempty"`
-	EffectiveDate string `json:"effDate,omitempty"`
-	ExpiryDate    string `json:"expDate,omitempty"`
+	ServiceName   string `json:"serviceName,omitempty"`
+	EffectiveDate string `json:"effectiveDate,omitempty"`
+	ExpiryDate    string `json:"expireDate,omitempty"`
 	TransactionID string `json:"transactionId,omitempty"`
 	ReturnCode    string `json:"returnCode,omitempty"`
 	ResultMsg     string `json:"resultMsg,omitempty"`
