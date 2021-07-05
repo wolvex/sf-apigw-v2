@@ -25,7 +25,7 @@ func (s *Customer) GetICCID() (iccid string, err error) {
 	}
 
 	var res []byte
-	if res, err = s.Gw.Get("/customer360/subscriber/iccid", "", req); err != nil {
+	if res, err = s.Gw.Get("/customer360/v1/subscriber/iccid", "", req); err != nil {
 		return
 	}
 
@@ -35,7 +35,7 @@ func (s *Customer) GetICCID() (iccid string, err error) {
 		return
 	}
 
-	iccid = string(data.GetStringBytes("iccid"))
+	iccid = string(data.GetStringBytes("data", "iccid"))
 
 	return
 }
