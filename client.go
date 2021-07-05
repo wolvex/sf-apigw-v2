@@ -3,6 +3,7 @@ package apigw
 import (
 	"bytes"
 	"crypto/hmac"
+	"crypto/rsa"
 	"crypto/sha256"
 	"crypto/tls"
 	"encoding/base64"
@@ -12,7 +13,10 @@ import (
 	"net/http"
 	"net/http/httputil"
 	"net/url"
+	"strings"
 	"time"
+
+	"github.com/dgrijalva/jwt-go"
 )
 
 type Client struct {
@@ -119,7 +123,16 @@ func (ws *Client) Get(uri, version string, request map[string]string) (response 
 func (ws *Client) SubmitRequest(req *http.Request, version string) (response []byte, err error) {
 	//add necessary headers
 	req.Header.Add("Date", generateDateHeader())
-	signature := generateHMACSignature(ws.KeyID, ws.SecretKey, req.Header.Get("Date"))
+
+	//add signature
+	var signature string
+	if strings.Contains(ws.SecretKey, "PRIVATE KEY") {
+		if signature, err = generateRSAToken(ws.KeyID, ws.SecretKey, req.Header.Get("Date")); err != nil {
+			return
+		}
+	} else {
+		signature = generateHMACSignature(ws.KeyID, ws.SecretKey, req.Header.Get("Date"))
+	}
 	if signature != "" {
 		req.Header.Add("Authorization", signature)
 	}
@@ -179,4 +192,28 @@ func generateHMACSignature(keyId, secretKey, date string) string {
 
 	//req.Header.Add("Authorization", "Signature keyid="+ws.KeyID+",algorithm=hmac-sha256,headers=date,signature="+encodedString)
 	return "Signature keyid=\"" + keyId + "\",algorithm=\"hmac-sha256\",signature=\"" + encodedString + "\""
+}
+
+func generateRSAToken(keyId, secretKey, date string) (token string, err error) {
+	//create key
+	var signKey *rsa.PrivateKey
+	if signKey, err = jwt.ParseRSAPrivateKeyFromPEM([]byte(secretKey)); err != nil {
+		return
+	}
+
+	// create a signer for rsa 256
+	t := jwt.New(jwt.GetSigningMethod("RS512"))
+
+	// set our claims
+	t.Claims = &jwt.StandardClaims{
+		// set the expire time
+		// see http://tools.ietf.org/html/draft-ietf-oauth-json-web-token-20#section-4.1.4
+		Subject:   keyId,
+		ExpiresAt: time.Now().Add(time.Minute * 5).Unix(),
+	}
+
+	// Creat token string
+	token, err = t.SignedString(signKey)
+
+	return
 }
