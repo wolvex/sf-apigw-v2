@@ -35,7 +35,8 @@ func (s *Customer) GetICCID() (iccid string, err error) {
 		return
 	}
 
-	iccid = string(data.GetStringBytes("data", "iccid"))
-
+	if data.Exists("data", "iccid") {
+		iccid = string(data.GetStringBytes("data", "iccid"))
+	}
 	return
 }
